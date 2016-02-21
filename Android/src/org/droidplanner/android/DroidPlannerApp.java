@@ -282,54 +282,24 @@ public class DroidPlannerApp extends Application implements DroneListener, Tower
     }
 
     private ConnectionParameter retrieveConnectionParameters() {
-        final int connectionType = dpPrefs.getConnectionParameterType();
+        /* Since we're programming this for the 3DR solo, it only connects via UDP.
+           Therefore, we only allow the UDP connection.
+         */
+        final int connectionType = ConnectionType.TYPE_UDP;
         Bundle extraParams = new Bundle();
         final DroneSharePrefs droneSharePrefs = new DroneSharePrefs(dpPrefs.getDroneshareLogin(),
                 dpPrefs.getDronesharePassword(), dpPrefs.isDroneshareEnabled(),
                 dpPrefs.isLiveUploadEnabled());
 
         ConnectionParameter connParams;
-        switch (connectionType) {
-            case ConnectionType.TYPE_USB:
-                extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, dpPrefs.getUsbBaudRate());
-                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                break;
 
-            case ConnectionType.TYPE_UDP:
-                extraParams.putInt(ConnectionType.EXTRA_UDP_SERVER_PORT, dpPrefs.getUdpServerPort());
-                if (dpPrefs.isUdpPingEnabled()) {
-                    extraParams.putString(ConnectionType.EXTRA_UDP_PING_RECEIVER_IP, dpPrefs.getUdpPingReceiverIp());
-                    extraParams.putInt(ConnectionType.EXTRA_UDP_PING_RECEIVER_PORT, dpPrefs.getUdpPingReceiverPort());
-                    extraParams.putByteArray(ConnectionType.EXTRA_UDP_PING_PAYLOAD, "Hello".getBytes());
-                }
-                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                break;
-
-            case ConnectionType.TYPE_TCP:
-                extraParams.putString(ConnectionType.EXTRA_TCP_SERVER_IP, dpPrefs.getTcpServerIp());
-                extraParams.putInt(ConnectionType.EXTRA_TCP_SERVER_PORT, dpPrefs.getTcpServerPort());
-                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                break;
-
-            case ConnectionType.TYPE_BLUETOOTH:
-                String btAddress = dpPrefs.getBluetoothDeviceAddress();
-                if (TextUtils.isEmpty(btAddress)) {
-                    connParams = null;
-                    startActivity(new Intent(getApplicationContext(),
-                            BluetoothDevicesActivity.class)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-
-                } else {
-                    extraParams.putString(ConnectionType.EXTRA_BLUETOOTH_ADDRESS, btAddress);
-                    connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                }
-                break;
-
-            default:
-                Log.e(TAG, "Unrecognized connection type: " + connectionType);
-                connParams = null;
-                break;
+        extraParams.putInt(ConnectionType.EXTRA_UDP_SERVER_PORT, dpPrefs.getUdpServerPort());
+        if (dpPrefs.isUdpPingEnabled()) {
+            extraParams.putString(ConnectionType.EXTRA_UDP_PING_RECEIVER_IP, dpPrefs.getUdpPingReceiverIp());
+            extraParams.putInt(ConnectionType.EXTRA_UDP_PING_RECEIVER_PORT, dpPrefs.getUdpPingReceiverPort());
+            extraParams.putByteArray(ConnectionType.EXTRA_UDP_PING_PAYLOAD, "Hello".getBytes());
         }
+        connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
 
         return connParams;
     }
